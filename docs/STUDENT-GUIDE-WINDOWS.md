@@ -47,7 +47,10 @@ print them).
 
 - **Start**: open VirtualBox → select *KingoVM* → **Start**
   (or double-click the `.bat` again — it just starts the VM).
-- **Stop**: close the VM window → choose **Send the shutdown signal**.
+- **Stop**: close the VM window → choose **Send the shutdown signal** — the
+  VM turns itself off within about 10–20 seconds. (Don't pick *Power off
+  the machine* for everyday use: that is like pulling the power plug and
+  can damage the databases inside the VM.)
 
 ## If your laptop has only 8 GB of RAM
 
