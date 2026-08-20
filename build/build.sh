@@ -34,15 +34,39 @@ fsize(){ stat -f%z "$1" 2>/dev/null || stat -c%s "$1"; }
 need() { command -v "$1" >/dev/null 2>&1 || die "missing dependency: $1  (macOS: brew install qemu ; Debian/Ubuntu: apt install qemu-system qemu-utils genisoimage)"; }
 
 make_seed_iso() { # $1=seed_dir $2=out_iso
+  # Tries every available tool instead of only the first: hdiutil exists on
+  # every Mac but can crash in sandboxed shells, so a failure falls through.
+  rm -f "$2"
   if command -v hdiutil >/dev/null 2>&1; then
-    hdiutil makehybrid -quiet -iso -joliet -default-volume-name CIDATA -o "$2" "$1"
-  elif command -v genisoimage >/dev/null 2>&1; then
-    genisoimage -quiet -output "$2" -volid CIDATA -joliet -rock "$1"/*
-  elif command -v mkisofs >/dev/null 2>&1; then
-    mkisofs -quiet -output "$2" -volid CIDATA -joliet -rock "$1"/*
-  else
-    die "need hdiutil, genisoimage or mkisofs to build the cloud-init seed ISO"
+    hdiutil makehybrid -quiet -iso -joliet -default-volume-name CIDATA -o "$2" "$1" \
+      && [ -s "$2" ] && return 0
   fi
+  if command -v genisoimage >/dev/null 2>&1; then
+    genisoimage -quiet -output "$2" -volid CIDATA -joliet -rock "$1"/* && [ -s "$2" ] && return 0
+  fi
+  if command -v mkisofs >/dev/null 2>&1; then
+    mkisofs -quiet -output "$2" -volid CIDATA -joliet -rock "$1"/* && [ -s "$2" ] && return 0
+  fi
+  # Last resort: pure-Python ISO via pycdlib (e.g. python3 -m venv
+  # build/cache/seedtools && build/cache/seedtools/bin/pip install pycdlib)
+  local py
+  for py in "$ROOT/build/cache/seedtools/bin/python3" python3; do
+    command -v "$py" >/dev/null 2>&1 || continue
+    "$py" -c 'import pycdlib' 2>/dev/null || continue
+    "$py" - "$1" "$2" <<'PYEOF' && [ -s "$2" ] && return 0
+import os, sys, pycdlib
+seed, out = sys.argv[1], sys.argv[2]
+iso = pycdlib.PyCdlib()
+iso.new(interchange_level=3, joliet=3, rock_ridge='1.09', vol_ident='CIDATA')
+for i, name in enumerate(sorted(os.listdir(seed))):
+    base = ''.join(c if c.isalnum() else '_' for c in name.upper()).split('.')[0][:7]
+    iso.add_file(os.path.join(seed, name), iso_path='/%s%d.;1' % (base, i),
+                 rr_name=name, joliet_path='/' + name)
+iso.write(out)
+iso.close()
+PYEOF
+  done
+  die "could not build the cloud-init seed ISO (need hdiutil, genisoimage, mkisofs, or python3 with pycdlib)"
 }
 
 pick_accel() { # $1=target_arch -> echoes "accel cpu"
