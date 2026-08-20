@@ -24,8 +24,10 @@ The script imports and starts the VM. **You only do this once.**
 
 ## 3. Wait for the READY screen
 
-A black VM window opens. After 1–3 minutes it shows
+A black VM window opens. After a few minutes it shows
 **ALL SERVICES ARE READY** with a list of web addresses.
+(The **very first start** can take up to 10 minutes — later starts are much
+faster. If the window stays black, click into it and press any key.)
 
 **Minimize** that window (don't close it) and open in your normal browser:
 

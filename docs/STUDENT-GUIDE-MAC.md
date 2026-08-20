@@ -21,7 +21,10 @@ dollars — the website download is identical and free.)
 
 ## 3. Wait for the READY screen
 
-After 1–3 minutes the VM window shows **ALL SERVICES ARE READY**.
+After a few minutes the VM window shows **ALL SERVICES ARE READY**.
+(The **very first start** can take up to 10 minutes — later starts are much
+faster. If the window stays black or says *"Display output is not active"*,
+click into it and press any key.)
 
 **Minimize** the VM window (don't close it) and open in Safari/Chrome:
 
