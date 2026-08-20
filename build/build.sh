@@ -172,7 +172,11 @@ bake() { # $1=arch(arm64|amd64)
 }
 
 package_utm() { # $1=work
-  local work="$1" bundle="$DIST/Kingo.utm"
+  # Stage the bundle inside the work dir, NEVER at dist/Kingo.utm: an
+  # extracted Kingo.utm registered in UTM lives at that path on dev machines,
+  # and UTM writing there (play/save) mid-package once emptied the bundle —
+  # the zip shipped without the disk and the registered VM lost its drive.
+  local work="$1" bundle="$work/Kingo.utm"
   log "[arm64] packaging UTM bundle"
   rm -rf "$bundle"; mkdir -p "$bundle/Data"
   qemu-img convert -c -O qcow2 "$work/disk.qcow2" "$bundle/Data/disk.qcow2"
@@ -183,7 +187,9 @@ package_utm() { # $1=work
   rm -f "$DIST/kingo-mac-arm64-utm.zip"
   # Info-ZIP writes proper zip64; ditto does NOT — for members over 4 GiB it
   # silently stores the size mod 2^32 and only Archive Utility can extract.
-  (cd "$DIST" && zip -qr kingo-mac-arm64-utm.zip Kingo.utm)
+  (cd "$work" && zip -qr "$DIST/kingo-mac-arm64-utm.zip" Kingo.utm)
+  [ "$(fsize "$DIST/kingo-mac-arm64-utm.zip")" -gt 1000000000 ] \
+    || die "utm zip is implausibly small — the disk was not packaged"
   rm -rf "$bundle"
   log "[arm64] wrote dist/kingo-mac-arm64-utm.zip"
 }
