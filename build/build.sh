@@ -157,11 +157,9 @@ package_utm() { # $1=work
       "$ROOT/build/templates/utm-config.plist.tmpl" > "$bundle/config.plist"
   command -v plutil >/dev/null 2>&1 && plutil -lint -s "$bundle/config.plist"
   rm -f "$DIST/kingo-mac-arm64-utm.zip"
-  if command -v ditto >/dev/null 2>&1; then
-    ditto -c -k --keepParent "$bundle" "$DIST/kingo-mac-arm64-utm.zip"
-  else
-    (cd "$DIST" && zip -qr kingo-mac-arm64-utm.zip Kingo.utm)
-  fi
+  # Info-ZIP writes proper zip64; ditto does NOT — for members over 4 GiB it
+  # silently stores the size mod 2^32 and only Archive Utility can extract.
+  (cd "$DIST" && zip -qr kingo-mac-arm64-utm.zip Kingo.utm)
   rm -rf "$bundle"
   log "[arm64] wrote dist/kingo-mac-arm64-utm.zip"
 }
