@@ -83,15 +83,14 @@
 	</dict>
 	<key>Display</key>
 	<array>
-		<!-- ramfb, NOT virtio-ramfb: with virtio-ramfb the UEFI firmware draws
-		     via the virtio-gpu and shuts it off at ExitBootServices; the Linux
-		     console then lands on a framebuffer UTM never shows again, so the
-		     window reads "Display output is not active" forever. Plain ramfb
-		     keeps one firmware framebuffer alive across the kernel handoff —
-		     verified by QMP screendump showing the READY banner. -->
+		<!-- virtio-ramfb is the only display UTM's firmware can drive (bare
+		     ramfb shows "Guest has not initialized the display" forever).
+		     The console handoff is fixed guest-side: the image boots with
+		     fbcon=map:1 so the text console lands on the virtio-gpu
+		     framebuffer, the one scanout UTM actually shows (see bake.sh). -->
 		<dict>
 			<key>Hardware</key>
-			<string>ramfb</string>
+			<string>virtio-ramfb</string>
 			<key>DynamicResolution</key>
 			<false/>
 			<key>UpscalingFilter</key>

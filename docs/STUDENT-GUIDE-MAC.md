@@ -60,9 +60,11 @@ The VM works, but your Mac will feel slow while it runs. Two tips:
    rule"**: another program on your Mac is using one of the VM's network
    ports (for example a database app such as Postgres.app on port 5432).
    Quit that program — or simply restart your Mac — and press ▶ again.
-3. The window says *"Display output is not active"*: with the VM
+3. The window says *"Display output is not active"* or *"Guest has not
+   initialized the display"* for more than two minutes: with the VM
    **stopped**, right-click *Kingo Classroom* → **Edit** → **Display** →
-   set **Emulated Display Card** to **ramfb** → **Save**, then ▶ again.
+   make sure **Emulated Display Card** is **virtio-ramfb** → **Save**,
+   then ▶ again.
 4. Still broken? Delete *Kingo Classroom* in UTM, re-extract the zip, and
    double-click `Kingo.utm` again for a fresh copy.
    (You lose your saved work inside the VM.)

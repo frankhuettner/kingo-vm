@@ -124,15 +124,19 @@ docker compose down          # stop cleanly; volumes (all baked state) remain
 # Stable wildcard network config: the NIC name differs between QEMU (build),
 # VirtualBox (E1000) and UTM (virtio), so match any en*/eth* interface.
 rm -f /etc/netplan/50-cloud-init.yaml
-# The visible-console fix for UTM lives in the VM config, not here: the display
-# hardware must be plain "ramfb" (see utm-config.plist.tmpl) because with
-# virtio-gpu-based displays the firmware shuts its framebuffer off at
-# ExitBootServices and the Linux console lands on one UTM never shows.
-# This blacklist merely keeps the framebuffer layout deterministic (exactly one
-# fb, owned by fbcon) should anyone switch the display device later; it is a
-# no-op under ramfb (no virtio-gpu device) and under VirtualBox (VMSVGA).
-echo 'blacklist virtio_gpu' > /etc/modprobe.d/kingo-display.conf
-update-initramfs -u
+# Put the text console on the virtio-gpu framebuffer (UTM/arm64 only): UTM's
+# firmware draws via virtio-gpu and shuts it off at ExitBootServices, and its
+# EDK2 build cannot drive a bare ramfb either — the only scanout UTM ever
+# shows is the virtio-gpu one. The firmware framebuffer leftover keeps
+# simpledrm on fb0, so fbcon must be pointed at fb1 (virtio-gpu) explicitly;
+# fbcon's modeset is what switches the scanout on. Verified in a live UTM VM.
+# amd64/VirtualBox has exactly one framebuffer (VMSVGA), so this stays
+# arm64-only — fbcon=map:1 with no fb1 would leave the console invisible.
+if [ "$(uname -m)" = "aarch64" ]; then
+  printf 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT fbcon=map:1"\n' \
+    > /etc/default/grub.d/99-kingo-display.cfg
+  update-grub
+fi
 apt-get clean
 rm -rf /var/lib/apt/lists/*
 touch /etc/cloud/cloud-init.disabled   # student boots skip cloud-init entirely
