@@ -1,7 +1,8 @@
 # Kingo VM — Windows setup (5 minutes)
 
-You need a Windows 10 or 11 laptop with at least **8 GB of RAM** and **25 GB
-of free disk space**.
+You need a Windows 10 or 11 laptop with at least **8 GB of RAM** and **35 GB
+of free disk space** (the download plus the imported VM, which grows as you
+use it).
 
 ## 1. Download
 

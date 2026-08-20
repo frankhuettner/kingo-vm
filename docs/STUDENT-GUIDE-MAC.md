@@ -1,7 +1,8 @@
 # Kingo VM — Mac setup (5 minutes)
 
 Works on any Apple-Silicon Mac (M1 or newer, i.e. Macs from 2021 on) with at
-least **8 GB of RAM** and **25 GB of free disk space**.
+least **8 GB of RAM** and **35 GB of free disk space** (the download plus
+the extracted VM, which grows as you use it).
 (Older Intel Macs: follow the Windows guide instead — VirtualBox for Intel
 Macs — or ask the instructor.)
 
