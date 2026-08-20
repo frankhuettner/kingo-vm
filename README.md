@@ -88,6 +88,22 @@ and rebuild.
 
 - **VM sizing**: 4 vCPU / 6 GB RAM / 32 GB thin disk (+2 GB swap inside).
   Hosts with 8 GB RAM work; 16 GB is comfortable.
+- **Why headless (no desktop GUI)**: a deliberate choice, not a shortcut.
+  Every service in the stack is a web UI that is port-forwarded to
+  `localhost` on the student's own machine, so students work in their own
+  browser — with their own keyboard layout (relevant for Korean input),
+  their own clipboard, passwords, bookmarks and downloads folder. A Ubuntu
+  desktop inside the VM would only add a second browser nobody needs, while
+  costing: ~3–4 GB larger image (≈15 GB download instead of 11), ~2 GB more
+  RAM for GNOME (an 8 GB VM would exclude the 8 GB laptops we promise to
+  support), a longer bake, and a pile of GUI failure modes to support in
+  class (login/lock screens, update pop-ups, display scaling, guest tools
+  that differ between VirtualBox and UTM, host↔guest clipboard quirks).
+  The "is it running?" reassurance a GUI would give is covered by the big
+  **ALL SERVICES READY** console banner instead. If a GUI is ever genuinely
+  needed, it is a small change — install `ubuntu-desktop-minimal` +
+  autologin in `build/cloud-init/user-data.tmpl` and raise the RAM/disk
+  sizing — not a redesign.
 - **Docker Desktop route**: students with Docker Desktop can skip the VM
   entirely: clone the repo, `cd stack && docker compose up -d`. Same stack,
   same URLs, same `./kingo` CLI. Also the escape hatch for Windows-on-ARM
