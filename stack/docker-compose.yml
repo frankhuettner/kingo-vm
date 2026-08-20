@@ -1,0 +1,169 @@
+# Kingo classroom stack — one file, both architectures (amd64 + arm64).
+# All images below publish multi-arch manifests (verified 2026-08-20).
+# To bump a version: change the tag, run `./kingo update` (or rebuild the VM).
+name: kingo
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: kingo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${KINGO_USER}
+      POSTGRES_PASSWORD: ${KINGO_PASSWORD}
+      POSTGRES_DB: classroom
+      TZ: ${TZ}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KINGO_USER} -d classroom"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  qdrant:
+    image: qdrant/qdrant:v1.19.0
+    container_name: kingo-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+
+  jupyterlab:
+    image: quay.io/jupyter/scipy-notebook:2026-08-17
+    container_name: kingo-jupyterlab
+    restart: unless-stopped
+    # Token/password disabled and XSRF relaxed so the classroom MCP server can
+    # drive the kernel. Safe because the VM is only reachable via localhost.
+    command: >
+      start-notebook.py
+      --IdentityProvider.token=''
+      --ServerApp.password=''
+      --ServerApp.ip=0.0.0.0
+      --ServerApp.allow_origin='*'
+      --ServerApp.disable_check_xsrf=True
+    environment:
+      TZ: ${TZ}
+    ports:
+      - "8888:8888"
+    volumes:
+      - jupyter-work:/home/jovyan/work
+
+  jupyter-mcp:
+    image: datalayer/jupyter-mcp-server:1.4.5
+    container_name: kingo-jupyter-mcp
+    restart: unless-stopped
+    # Serves streamable-HTTP MCP at http://localhost:4040/mcp.
+    # Both old (DOCUMENT_/RUNTIME_) and new (ROOM_) env names are set so the
+    # container works across jupyter-mcp-server releases. The bearer token is
+    # what `kingo mcp` prints; clients send it as "Authorization: Bearer ...".
+    environment:
+      DOCUMENT_URL: http://jupyterlab:8888
+      DOCUMENT_ID: work/notebook.ipynb
+      DOCUMENT_TOKEN: ""
+      RUNTIME_URL: http://jupyterlab:8888
+      RUNTIME_TOKEN: ""
+      ROOM_URL: http://jupyterlab:8888
+      ROOM_ID: work/notebook.ipynb
+      ROOM_TOKEN: ""
+      MCP_AUTH_TOKEN: ${MCP_TOKEN}
+    ports:
+      - "4040:4040"
+    depends_on:
+      - jupyterlab
+
+  langflow:
+    image: langflowai/langflow:1.8.0
+    container_name: kingo-langflow
+    restart: unless-stopped
+    environment:
+      LANGFLOW_DATABASE_URL: postgresql://${KINGO_USER}:${KINGO_PASSWORD}@postgres:5432/langflow
+      LANGFLOW_AUTO_LOGIN: "true"
+      LANGFLOW_SECRET_KEY: ${LANGFLOW_SECRET_KEY}
+      LANGFLOW_CONFIG_DIR: /app/data
+      LANGFLOW_HOST: 0.0.0.0
+      LANGFLOW_PORT: "7860"
+    ports:
+      - "7860:7860"
+    volumes:
+      - langflow-data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  n8n:
+    image: n8nio/n8n:2.35.5
+    container_name: kingo-n8n
+    restart: unless-stopped
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: "5432"
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER: ${KINGO_USER}
+      DB_POSTGRESDB_PASSWORD: ${KINGO_PASSWORD}
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_SECURE_COOKIE: "false"
+      N8N_RUNNERS_ENABLED: "true"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      GENERIC_TIMEZONE: ${TZ}
+      TZ: ${TZ}
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n-data:/home/node/.n8n
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  metabase:
+    image: metabase/metabase:v0.60.25
+    container_name: kingo-metabase
+    restart: unless-stopped
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_HOST: postgres
+      MB_DB_PORT: "5432"
+      MB_DB_DBNAME: metabase
+      MB_DB_USER: ${KINGO_USER}
+      MB_DB_PASS: ${KINGO_PASSWORD}
+      JAVA_OPTS: -Xmx1g
+      TZ: ${TZ}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:26.1.5
+    container_name: kingo-cloudbeaver
+    restart: unless-stopped
+    # CB_ADMIN_* skips the first-run admin wizard; the mounted data-sources
+    # file pre-registers the classroom PostgreSQL connection.
+    environment:
+      CB_SERVER_NAME: Kingo Classroom
+      CB_SERVER_URL: http://localhost:8978
+      CB_ADMIN_NAME: ${KINGO_USER}
+      CB_ADMIN_PASSWORD: ${KINGO_STRONG_PASSWORD}
+    ports:
+      - "8978:8978"
+    volumes:
+      - cloudbeaver-data:/opt/cloudbeaver/workspace
+      - ./cloudbeaver/data-sources.json:/opt/cloudbeaver/workspace/GlobalConfiguration/.dbeaver/data-sources.json
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  qdrant-data:
+  jupyter-work:
+  langflow-data:
+  n8n-data:
+  cloudbeaver-data:

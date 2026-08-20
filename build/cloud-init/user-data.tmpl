@@ -1,0 +1,53 @@
+#cloud-config
+# Rendered by build/build.sh (tokens: @KINGO_PASSWORD@). Drives the fully
+# unattended image bake: runs once under QEMU, then powers off.
+
+hostname: kingo
+preserve_hostname: false
+timezone: Asia/Seoul
+
+users:
+  - name: student
+    gecos: Kingo Student
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: [adm, sudo]
+    shell: /bin/bash
+    lock_passwd: false
+    plain_text_passwd: '@KINGO_PASSWORD@'
+
+ssh_pwauth: true
+chpasswd:
+  expire: false
+
+package_update: true
+packages:
+  - docker.io
+  - docker-compose-v2
+  - curl
+  - avahi-daemon
+
+write_files:
+  # Wildcard DHCP so the same image gets networking under QEMU (build),
+  # VirtualBox E1000 (enp0s3) and UTM virtio (enp0s1) alike.
+  - path: /etc/netplan/60-kingo.yaml
+    permissions: "0600"
+    content: |
+      network:
+        version: 2
+        ethernets:
+          all-en:
+            match:
+              name: "en*"
+            dhcp4: true
+          all-eth:
+            match:
+              name: "eth*"
+            dhcp4: true
+
+runcmd:
+  - [bash, -c, "mkdir -p /media/seed && mount -o ro \"$(blkid -L CIDATA)\" /media/seed"]
+  - [bash, -c, "tar -xzf /media/seed/payload.tgz -C /opt && umount /media/seed"]
+  - [bash, -c, "netplan apply || true"]
+  - [bash, -c, "bash /opt/kingo/.build/bake.sh 2>&1 | tee /var/log/kingo-bake.log"]
+  - [bash, -c, "grep -q OK /var/lib/kingo/bake-ok && for c in /dev/ttyS0 /dev/ttyAMA0 /dev/console; do echo KINGO-BAKE-SUCCESS > $c 2>/dev/null || true; done"]
+  - [bash, -c, "sync && sleep 2 && systemctl poweroff"]

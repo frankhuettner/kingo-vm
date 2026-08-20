@@ -1,0 +1,6 @@
+# build outputs — multi-GB, never belong in git
+build/cache/
+build/work/
+dist/
+
+.DS_Store
