@@ -59,19 +59,20 @@ services:
     container_name: kingo-jupyter-mcp
     restart: unless-stopped
     # Serves streamable-HTTP MCP at http://localhost:4040/mcp.
-    # Both old (DOCUMENT_/RUNTIME_) and new (ROOM_) env names are set so the
-    # container works across jupyter-mcp-server releases. The bearer token is
-    # what `kingo mcp` prints; clients send it as "Authorization: Bearer ...".
+    # Env names verified against 1.4.5 (`python -m jupyter_mcp_server start
+    # --help`): TRANSPORT must be set (default is stdio, which serves nothing
+    # on 4040), the Jupyter connection is JUPYTER_URL, and the bearer token —
+    # what `kingo mcp` prints, sent as "Authorization: Bearer ..." — is
+    # MCP_TOKEN. DOCUMENT_* selects the notebook the server operates on.
     environment:
+      TRANSPORT: streamable-http
+      PORT: "4040"
+      JUPYTER_URL: http://jupyterlab:8888
+      JUPYTER_TOKEN: ""
       DOCUMENT_URL: http://jupyterlab:8888
       DOCUMENT_ID: work/notebook.ipynb
       DOCUMENT_TOKEN: ""
-      RUNTIME_URL: http://jupyterlab:8888
-      RUNTIME_TOKEN: ""
-      ROOM_URL: http://jupyterlab:8888
-      ROOM_ID: work/notebook.ipynb
-      ROOM_TOKEN: ""
-      MCP_AUTH_TOKEN: ${MCP_TOKEN}
+      MCP_TOKEN: ${MCP_TOKEN}
     ports:
       - "4040:4040"
     depends_on:
@@ -81,6 +82,11 @@ services:
     image: langflowai/langflow:1.8.0
     container_name: kingo-langflow
     restart: unless-stopped
+    # Run as root: the image's default non-root user cannot write the fresh
+    # named volume at /app/data (docker creates it root-owned because the
+    # path does not exist in the image), which crash-loops langflow on its
+    # secret-key write. Root also survives `kingo reset` recreating volumes.
+    user: root
     environment:
       LANGFLOW_DATABASE_URL: postgresql://${KINGO_USER}:${KINGO_PASSWORD}@postgres:5432/langflow
       LANGFLOW_AUTO_LOGIN: "true"

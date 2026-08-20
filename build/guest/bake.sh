@@ -35,26 +35,43 @@ cd "$KINGO"
 for i in 1 2 3; do docker compose pull && break || { echo "pull retry $i"; sleep 10; }; done
 docker compose up -d
 
-# Wait until every service answers (Metabase's first migration is the slowest)
-check() {
-  local port="$1" path="$2" code
+# Wait until every service answers WITH the expected status code. A lenient
+# "any HTTP answer counts" check once passed while langflow was crash-looping
+# (its /health responds briefly before the crash) — hence exact codes, a
+# stability re-check, and an explicit no-restarting-containers assertion.
+check() { # port path expected-codes ("200" or alternation like "200|302")
+  local port="$1" path="$2" want="$3" code
   if [ "$path" = "tcp" ]; then
     (exec 3<>"/dev/tcp/127.0.0.1/$port") 2>/dev/null && { exec 3>&- 3<&-; return 0; } || return 1
   fi
   code=$(curl -s -o /dev/null -m 3 -w '%{http_code}' "http://127.0.0.1:${port}${path}" 2>/dev/null || echo 000)
-  [ "$code" != "000" ]
+  echo "$code" | grep -qE "^(${want})$"
 }
-SERVICES="8888|/api 4040|/ 7860|/health 5678|/healthz 3000|/api/health 8978|/ 6333|/readyz 5432|tcp"
-for attempt in $(seq 1 90); do
-  all=1
-  for s in $SERVICES; do
-    check "${s%|*}" "${s#*|}" || { all=0; break; }
+# 4040/mcp answers 401 without the bearer token — that IS the healthy state.
+SERVICES="8888|/api|200 4040|/mcp|401 7860|/health|200 5678|/healthz|200 3000|/api/health|200 8978|/|200|301|302 6333|/readyz|200 5432|tcp"
+wait_all() { # $1=max attempts
+  local attempt all s port path want
+  for attempt in $(seq 1 "$1"); do
+    all=1
+    for s in $SERVICES; do
+      IFS='|' read -r port path want <<<"$s"
+      check "$port" "$path" "${want:-200}" || { all=0; break; }
+    done
+    [ "$all" = 1 ] && return 0
+    echo "waiting for services ($attempt/$1) ..."
+    sleep 10
   done
-  [ "$all" = 1 ] && break
-  echo "waiting for services ($attempt/90) ..."
-  sleep 10
-done
-[ "$all" = 1 ] || { echo "ERROR: services did not all come up"; docker compose ps; exit 1; }
+  return 1
+}
+assert_stable() {
+  sleep 20   # a crash-looping container flips to "Restarting" within seconds
+  if docker compose ps --format '{{.Name}} {{.Status}}' | grep -i 'restart'; then
+    echo "ERROR: containers are restart-looping"; docker compose ps; exit 1
+  fi
+  wait_all 3 || { echo "ERROR: services flapped after coming up"; docker compose ps; exit 1; }
+}
+wait_all 90 || { echo "ERROR: services did not all come up"; docker compose ps; exit 1; }
+assert_stable
 
 # Starter notebook that the MCP server points at
 docker exec kingo-jupyterlab bash -lc \
@@ -85,12 +102,27 @@ setup_metabase() {
 }
 setup_metabase || echo "WARN: Metabase pre-setup skipped"
 
+docker compose down
+
+# Second boot cycle: catches services that only survive their very first run
+# (a first-run-only bug once shipped because the single-cycle check passed).
+docker compose up -d
+wait_all 45 || { echo "ERROR: services failed on second start"; docker compose ps; exit 1; }
+assert_stable
 docker compose down          # stop cleanly; volumes (all baked state) remain
 
 # --- image hygiene -----------------------------------------------------------
 # Stable wildcard network config: the NIC name differs between QEMU (build),
 # VirtualBox (E1000) and UTM (virtio), so match any en*/eth* interface.
 rm -f /etc/netplan/50-cloud-init.yaml
+# Keep the text console on the firmware framebuffer: with UTM's virtio-ramfb
+# display, the kernel's virtio-gpu driver takes over the visible scanout while
+# fbcon keeps drawing to the now-hidden ramfb — the VM window then shows
+# "Display output is not active" forever. Blacklisting virtio_gpu pins the
+# console (and our READY banner) to the framebuffer hypervisors actually show.
+# VirtualBox (VMSVGA) never uses virtio_gpu, so this is a no-op there.
+echo 'blacklist virtio_gpu' > /etc/modprobe.d/kingo-display.conf
+update-initramfs -u
 apt-get clean
 rm -rf /var/lib/apt/lists/*
 touch /etc/cloud/cloud-init.disabled   # student boots skip cloud-init entirely
