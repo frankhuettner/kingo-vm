@@ -214,9 +214,12 @@ package_ova() { # $1=work
 
 checksums() {
   log "writing SHA256SUMS.txt"
-  # write to a dotfile first so the glob never picks up the sums file itself
+  # dotfile first so the file list never picks up the sums file itself;
+  # -maxdepth 1 -type f so stray directories in dist/ don't break the run
   (cd "$DIST" && rm -f SHA256SUMS.txt \
-    && { command -v sha256sum >/dev/null 2>&1 && sha256sum * || shasum -a 256 *; } > .SHA256SUMS.tmp \
+    && find . -maxdepth 1 -type f ! -name '.*' -exec sh -c \
+         'command -v sha256sum >/dev/null 2>&1 && sha256sum "$@" || shasum -a 256 "$@"' _ {} + \
+       | sed 's|\./||' > .SHA256SUMS.tmp \
     && mv .SHA256SUMS.tmp SHA256SUMS.txt) || true
 }
 
