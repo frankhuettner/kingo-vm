@@ -1,0 +1,20 @@
+# Temporary: prints the runner's disk layout so we can size the amd64 build.
+name: diag-runner-disks
+on:
+  workflow_dispatch:
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Disk layout
+        run: |
+          echo "=== df -h ==="; df -h
+          echo "=== findmnt /mnt ==="; findmnt /mnt || echo "/mnt is NOT a separate mount"
+          echo "=== lsblk ==="; lsblk
+          echo "=== free -h ==="; free -h
+          echo "=== big dirs on / ==="
+          sudo du -xsh /usr/share/dotnet /usr/local/lib/android /opt/hostedtoolcache \
+            /usr/local/.ghcup /usr/share/swift /usr/lib/jvm /usr/share/miniconda \
+            /usr/local/share/powershell /usr/local/share/chromium /usr/lib/google-cloud-sdk \
+            /var/lib/docker 2>/dev/null || true
