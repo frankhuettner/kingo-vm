@@ -32,8 +32,17 @@ systemctl enable docker kingo kingo-banner
 
 # --- pre-pull + first-run initialization ------------------------------------
 cd "$KINGO"
-for i in 1 2 3; do docker compose pull && break || { echo "pull retry $i"; sleep 10; }; done
-docker compose up -d
+# Registry pulls flake on shared-IP hosts (GitHub runners hit Docker Hub
+# rate limits): retry patiently and fail LOUDLY if the images never arrive —
+# continuing with a half-pulled stack just fails later with a worse message.
+pull_ok=0
+for i in 1 2 3 4 5; do
+  docker compose pull && { pull_ok=1; break; }
+  echo "pull attempt $i failed (registry flake or rate limit); retrying in 30s"
+  sleep 30
+done
+[ "$pull_ok" = 1 ] || { echo "ERROR: docker compose pull kept failing"; exit 1; }
+for i in 1 2 3; do docker compose up -d && break || { echo "up retry $i"; sleep 15; }; done
 
 # Wait until every service answers WITH the expected status code. A lenient
 # "any HTTP answer counts" check once passed while langflow was crash-looping
