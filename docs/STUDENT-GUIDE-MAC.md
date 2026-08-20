@@ -54,7 +54,11 @@ The VM works, but your Mac will feel slow while it runs. Two tips:
 ## If something breaks
 
 1. In UTM press ■ (stop), then ▶ (start) again.
-2. Still broken? Delete *Kingo Classroom* in UTM, re-extract the zip, and
+2. UTM shows an error mentioning **"Could not set up host forwarding
+   rule"**: another program on your Mac is using one of the VM's network
+   ports (for example a database app such as Postgres.app on port 5432).
+   Quit that program — or simply restart your Mac — and press ▶ again.
+3. Still broken? Delete *Kingo Classroom* in UTM, re-extract the zip, and
    double-click `Kingo.utm` again for a fresh copy.
    (You lose your saved work inside the VM.)
-3. Ask the instructor / TA.
+4. Ask the instructor / TA.

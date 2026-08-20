@@ -60,7 +60,10 @@ The VM works, but your laptop will feel slow while it runs. Two tips:
 ## If something breaks
 
 1. Close the VM window (choose *Power off the machine*) and start it again.
-2. Still broken? In VirtualBox: right-click *KingoVM* → **Remove → Delete all
+2. An error mentions a **port** or a **forwarding rule**: another program
+   on your computer is using one of the VM's network ports. Restart your
+   computer and try again; if it keeps happening, ask the instructor.
+3. Still broken? In VirtualBox: right-click *KingoVM* → **Remove → Delete all
    files**, then double-click the `.bat` again for a fresh copy.
    (You lose your saved work inside the VM.)
-3. Ask the instructor / TA.
+4. Ask the instructor / TA.
