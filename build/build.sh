@@ -152,6 +152,7 @@ package_utm() { # $1=work
   log "[arm64] packaging UTM bundle"
   rm -rf "$bundle"; mkdir -p "$bundle/Data"
   qemu-img convert -c -O qcow2 "$work/disk.qcow2" "$bundle/Data/disk.qcow2"
+  rm -f "$work/disk.qcow2"    # ~20 GB intermediate, no longer needed
   sed -e "s|@UUID@|$(uuidgen | tr 'a-z' 'A-Z')|g" \
       "$ROOT/build/templates/utm-config.plist.tmpl" > "$bundle/config.plist"
   command -v plutil >/dev/null 2>&1 && plutil -lint -s "$bundle/config.plist"
@@ -166,25 +167,35 @@ package_utm() { # $1=work
 }
 
 package_ova() { # $1=work
-  local work="$1" pkg="$work/ova" vmdk_size
+  local work="$1" pkg="$work/ova" vmdk_size tarfmt=gnutar
   log "[amd64] packaging VirtualBox OVA"
   mkdir -p "$pkg"
   qemu-img convert -O vmdk -o subformat=streamOptimized \
       "$work/disk.qcow2" "$pkg/kingo-disk001.vmdk"
+  rm -f "$work/disk.qcow2"    # ~20 GB intermediate, no longer needed
   vmdk_size=$(fsize "$pkg/kingo-disk001.vmdk")
   sed -e "s|@VMDK_SIZE@|$vmdk_size|g" \
       -e "s|@DISK_CAPACITY@|$DISK_CAPACITY_BYTES|g" \
       "$ROOT/build/templates/kingo.ovf.tmpl" > "$pkg/kingo.ovf"
   rm -f "$DIST/kingo-win-amd64.ova"
-  # OVA = plain ustar tar, .ovf first
-  (cd "$pkg" && COPYFILE_DISABLE=1 tar --format ustar -cf "$DIST/kingo-win-amd64.ova" kingo.ovf kingo-disk001.vmdk)
+  # OVA = tar, .ovf first. GNU tar format, NOT ustar: the vmdk exceeds
+  # ustar's 8 GiB per-file limit (bsdtar then DROPS it but still exits 0).
+  # VirtualBox's tar reader accepts GNU base-256 sizes; it rejects pax.
+  tar --version 2>/dev/null | grep -q 'GNU tar' && tarfmt=gnu
+  (cd "$pkg" && COPYFILE_DISABLE=1 tar --format "$tarfmt" -cf "$DIST/kingo-win-amd64.ova" kingo.ovf kingo-disk001.vmdk)
+  [ "$(fsize "$DIST/kingo-win-amd64.ova")" -gt "$vmdk_size" ] \
+    || die "OVA is smaller than its vmdk — the disk was not packaged"
+  rm -f "$pkg/kingo-disk001.vmdk"
   cp "$ROOT/dist-extras/KINGO-SETUP-WINDOWS.bat" "$DIST/"
   log "[amd64] wrote dist/kingo-win-amd64.ova (+ KINGO-SETUP-WINDOWS.bat)"
 }
 
 checksums() {
   log "writing SHA256SUMS.txt"
-  (cd "$DIST" && { command -v sha256sum >/dev/null 2>&1 && sha256sum * || shasum -a 256 *; } > SHA256SUMS.txt) || true
+  # write to a dotfile first so the glob never picks up the sums file itself
+  (cd "$DIST" && rm -f SHA256SUMS.txt \
+    && { command -v sha256sum >/dev/null 2>&1 && sha256sum * || shasum -a 256 *; } > .SHA256SUMS.tmp \
+    && mv .SHA256SUMS.tmp SHA256SUMS.txt) || true
 }
 
 case "${1:-}" in
