@@ -21,10 +21,9 @@ dollars — the website download is identical and free.)
 
 ## 3. Wait for the READY screen
 
-After a few minutes the VM window shows **ALL SERVICES ARE READY**.
-(The **very first start** can take up to 10 minutes — later starts are much
-faster. If the window stays black or says *"Display output is not active"*,
-click into it and press any key.)
+The window shows Linux boot text and, after a few minutes, **ALL SERVICES
+ARE READY**. (The **very first start** can take up to 10 minutes — later
+starts are much faster.)
 
 **Minimize** the VM window (don't close it) and open in Safari/Chrome:
 
@@ -61,7 +60,10 @@ The VM works, but your Mac will feel slow while it runs. Two tips:
    rule"**: another program on your Mac is using one of the VM's network
    ports (for example a database app such as Postgres.app on port 5432).
    Quit that program — or simply restart your Mac — and press ▶ again.
-3. Still broken? Delete *Kingo Classroom* in UTM, re-extract the zip, and
+3. The window says *"Display output is not active"*: with the VM
+   **stopped**, right-click *Kingo Classroom* → **Edit** → **Display** →
+   set **Emulated Display Card** to **ramfb** → **Save**, then ▶ again.
+4. Still broken? Delete *Kingo Classroom* in UTM, re-extract the zip, and
    double-click `Kingo.utm` again for a fresh copy.
    (You lose your saved work inside the VM.)
-4. Ask the instructor / TA.
+5. Ask the instructor / TA.

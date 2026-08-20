@@ -124,12 +124,13 @@ docker compose down          # stop cleanly; volumes (all baked state) remain
 # Stable wildcard network config: the NIC name differs between QEMU (build),
 # VirtualBox (E1000) and UTM (virtio), so match any en*/eth* interface.
 rm -f /etc/netplan/50-cloud-init.yaml
-# Keep the text console on the firmware framebuffer: with UTM's virtio-ramfb
-# display, the kernel's virtio-gpu driver takes over the visible scanout while
-# fbcon keeps drawing to the now-hidden ramfb — the VM window then shows
-# "Display output is not active" forever. Blacklisting virtio_gpu pins the
-# console (and our READY banner) to the framebuffer hypervisors actually show.
-# VirtualBox (VMSVGA) never uses virtio_gpu, so this is a no-op there.
+# The visible-console fix for UTM lives in the VM config, not here: the display
+# hardware must be plain "ramfb" (see utm-config.plist.tmpl) because with
+# virtio-gpu-based displays the firmware shuts its framebuffer off at
+# ExitBootServices and the Linux console lands on one UTM never shows.
+# This blacklist merely keeps the framebuffer layout deterministic (exactly one
+# fb, owned by fbcon) should anyone switch the display device later; it is a
+# no-op under ramfb (no virtio-gpu device) and under VirtualBox (VMSVGA).
 echo 'blacklist virtio_gpu' > /etc/modprobe.d/kingo-display.conf
 update-initramfs -u
 apt-get clean

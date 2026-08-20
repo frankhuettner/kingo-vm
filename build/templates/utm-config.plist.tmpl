@@ -83,9 +83,15 @@
 	</dict>
 	<key>Display</key>
 	<array>
+		<!-- ramfb, NOT virtio-ramfb: with virtio-ramfb the UEFI firmware draws
+		     via the virtio-gpu and shuts it off at ExitBootServices; the Linux
+		     console then lands on a framebuffer UTM never shows again, so the
+		     window reads "Display output is not active" forever. Plain ramfb
+		     keeps one firmware framebuffer alive across the kernel handoff —
+		     verified by QMP screendump showing the READY banner. -->
 		<dict>
 			<key>Hardware</key>
-			<string>virtio-ramfb</string>
+			<string>ramfb</string>
 			<key>DynamicResolution</key>
 			<false/>
 			<key>UpscalingFilter</key>
