@@ -51,6 +51,8 @@ print them).
   VM turns itself off within about 10–20 seconds. (Don't pick *Power off
   the machine* for everyday use: that is like pulling the power plug and
   can damage the databases inside the VM.)
+- Alternative: in the VM window's menu choose **Input → Keyboard →
+  Insert Ctrl-Alt-Del** — the VM shuts down cleanly the same way.
 
 ## If your laptop has only 8 GB of RAM
 

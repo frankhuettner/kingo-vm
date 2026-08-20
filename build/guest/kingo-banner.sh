@@ -57,9 +57,12 @@ while true; do
     echo "     CloudBeaver   http://localhost:8978"
     echo "     Qdrant        http://localhost:6333/dashboard"
     echo
-    echo "   Logins -> ask your instructor, or press Ctrl+Alt+F2 (Mac: use"
-    echo "   the UTM menu), log in as ${KINGO_USER:-student} / ${KINGO_PASSWORD:-kingo2026},"
+    echo "   Logins -> ask your instructor, or press Ctrl+Alt+F2"
+    echo "   (Mac: Ctrl+Option+fn+F2), log in as ${KINGO_USER:-student} / ${KINGO_PASSWORD:-kingo2026},"
     echo "   and run:  kingo credentials"
+    echo
+    echo "   To turn the VM off: press  Ctrl + Alt + Delete"
+    echo "   (Mac keyboards: Ctrl + Option + fn + Delete) - shuts down cleanly."
   else
     echo "   Starting services  ($up/$total ready)  -- this takes 1-3 minutes"
     echo

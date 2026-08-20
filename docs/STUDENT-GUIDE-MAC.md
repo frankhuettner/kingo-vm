@@ -41,12 +41,14 @@ Logins are on the instructor's slide.
 ## Daily use
 
 - **Start**: open UTM → select *Kingo Classroom* → **▶**
-- **Stop**: click into the VM window, press **⌃ Ctrl + ⌥ Option + fn + F2**
-  ("Alt" is the Option key, and you need **fn** so F2 acts as a real
-  function key instead of brightness), log in as `student` / `kingo2026`
-  (the password stays **invisible** while you type — that's normal, just
-  type it and press Enter), then type `sudo poweroff` and press Enter.
-  The VM turns itself off cleanly in about 20 seconds.
+- **Stop**: click into the VM window and press
+  **⌃ Ctrl + ⌥ Option + fn + ⌫ Delete** (all four at once — that is
+  "Ctrl+Alt+Del": "Alt" is the Option key, and **fn + ⌫** makes the
+  backspace key act as a real Delete key). The VM turns itself off cleanly
+  in about 20 seconds.
+- If that combo does nothing: press **⌃ Ctrl + ⌥ Option + fn + F2**, log in
+  as `student` / `kingo2026` (the password stays **invisible** while you
+  type — that's normal), then type `sudo poweroff` and press Enter.
 - UTM's **⏻ button** is a *hard* power-off — UTM warns that it "may corrupt
   the VM". Only click OK there if the VM is frozen: it is like pulling the
   power plug and you may lose your work inside the VM.

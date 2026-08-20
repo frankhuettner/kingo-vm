@@ -30,6 +30,15 @@ usermod -aG docker student
 systemctl daemon-reload
 systemctl enable docker kingo kingo-banner
 
+# One-key clean shutdown: Ctrl+Alt+Del on the console powers the VM off
+# cleanly instead of rebooting — students never have to log in just to stop
+# the VM. If someone mashes the combo, systemd's burst action must not turn
+# into its default force-REBOOT either, so redirect that to a forced poweroff.
+ln -sf /usr/lib/systemd/system/poweroff.target /etc/systemd/system/ctrl-alt-del.target
+mkdir -p /etc/systemd/system.conf.d
+printf '[Manager]\nCtrlAltDelBurstAction=poweroff-force\n' \
+  > /etc/systemd/system.conf.d/10-kingo-ctrl-alt-del.conf
+
 # --- pre-pull + first-run initialization ------------------------------------
 cd "$KINGO"
 # Registry pulls flake on shared-IP hosts (GitHub runners hit Docker Hub
