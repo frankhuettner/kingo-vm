@@ -13,6 +13,40 @@ the URLs below **on the student's own machine**, exactly as documented.
 The VM console shows a big **ALL SERVICES READY** screen — students never
 touch a Linux shell.
 
+## Student quick start
+
+The step-by-step guides to hand out are
+[docs/STUDENT-GUIDE-WINDOWS.md](docs/STUDENT-GUIDE-WINDOWS.md) and
+[docs/STUDENT-GUIDE-MAC.md](docs/STUDENT-GUIDE-MAC.md). The short version —
+you need **8 GB of RAM** and **35 GB of free disk space**:
+
+**Windows (Intel/AMD):**
+
+1. Download `kingo-win-amd64.ova` and `KINGO-SETUP-WINDOWS.bat` into the
+   **same folder** and wait until both downloads finish completely.
+2. Double-click **`KINGO-SETUP-WINDOWS.bat`**. If Windows warns you, click
+   *More info → Run anyway*. The script installs VirtualBox if needed, then
+   imports and starts the VM — you only do this once.
+3. When the VM window shows **ALL SERVICES ARE READY** (1–3 minutes),
+   **minimize** it (don't close it) and open the service URLs below in your
+   normal browser.
+
+**Mac (Apple Silicon, M1 or newer):**
+
+1. Install [UTM](https://mac.getutm.app) (free) — drag it into Applications.
+2. Download `kingo-mac-arm64-utm.zip`, double-click it, then double-click
+   the extracted **Kingo.utm** and press **▶** in UTM.
+3. When the VM window shows **ALL SERVICES ARE READY** (1–3 minutes),
+   **minimize** it (don't close it) and open the service URLs below in your
+   normal browser.
+
+Day to day: start the VM from VirtualBox/UTM, stop it by closing the VM
+window and choosing shutdown. If anything breaks: power the VM off and start
+it again; if it is still broken, delete the VM and re-import it from your
+downloaded file (work saved inside the VM is lost). On an 8 GB machine,
+close other apps while the VM runs — the guides show an optional memory
+tweak too.
+
 ## Services
 
 | Service | URL | First login |
