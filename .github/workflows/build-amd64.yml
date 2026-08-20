@@ -1,10 +1,19 @@
 # Builds the Windows/Intel (amd64) image natively with KVM on a GitHub-hosted
 # runner (~30-45 min), so you never need x86 hardware yourself. The arm64
 # image builds natively on your Apple-Silicon Mac with ./build/build.sh arm64.
+#
+# The build runs on /mnt (the runner's ~60 GB scratch disk — the root disk is
+# too small) and publishes to a GitHub RELEASE, not an Actions artifact:
+# private repos only include 500 MB of artifact storage, while release assets
+# are free but capped at 2 GiB per file, so the OVA is split into parts.
+# Reassemble after download:  cat kingo-win-amd64.ova.part* > kingo-win-amd64.ova
 name: build-amd64-image
 
 on:
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -13,10 +22,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Free disk space
+      - name: Free disk space on the root disk
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
-          df -h /
+          df -h / /mnt
 
       - name: Install QEMU
         run: |
@@ -31,15 +40,27 @@ jobs:
           sudo udevadm trigger --name-match=kvm
           ls -l /dev/kvm
 
-      - name: Build image
-        run: ./build/build.sh amd64
+      - name: Move workspace to the big scratch disk
+        run: |
+          sudo mkdir -p /mnt/kingo
+          sudo chown "$USER" /mnt/kingo
+          rsync -a --exclude .git ./ /mnt/kingo/
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: kingo-win-amd64
-          path: |
-            dist/kingo-win-amd64.ova
-            dist/KINGO-SETUP-WINDOWS.bat
-            dist/SHA256SUMS.txt
-          retention-days: 14
+      - name: Build image
+        run: cd /mnt/kingo && ./build/build.sh amd64
+
+      - name: Publish to release (split into <2 GiB parts)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd /mnt/kingo/dist
+          split -b 1900m -d kingo-win-amd64.ova kingo-win-amd64.ova.part
+          rm kingo-win-amd64.ova
+          sha256sum kingo-win-amd64.ova.part* KINGO-SETUP-WINDOWS.bat > SHA256SUMS.txt
+          tag="win-amd64-r${GITHUB_RUN_NUMBER}"
+          gh release create "$tag" --repo "$GITHUB_REPOSITORY" \
+            --title "Windows amd64 image (build $GITHUB_RUN_NUMBER)" \
+            --notes "Download all parts plus the .bat, then reassemble the OVA with:
+          \`cat kingo-win-amd64.ova.part* > kingo-win-amd64.ova\`
+          Verify with \`shasum -a 256 -c SHA256SUMS.txt\` (parts, before reassembly)." \
+            kingo-win-amd64.ova.part* KINGO-SETUP-WINDOWS.bat SHA256SUMS.txt

@@ -41,8 +41,10 @@ Prereq on your Mac: `brew install qemu`. Then:
 
 Recommended split: build `arm64` locally, and let GitHub Actions build
 `amd64` natively with KVM (~30–45 min): push this repo to GitHub, then run
-the **build-amd64-image** workflow (Actions tab → Run workflow) and download
-the artifact.
+the **build-amd64-image** workflow (Actions tab → Run workflow). It publishes
+a GitHub **release** with the OVA split into <2 GiB parts (private-repo
+artifact storage is too small); download the parts and reassemble:
+`cat kingo-win-amd64.ova.part* > kingo-win-amd64.ova`.
 
 The build is fully unattended: it boots a stock Ubuntu 24.04 cloud image
 headlessly under QEMU; cloud-init installs Docker, copies `stack/` to
