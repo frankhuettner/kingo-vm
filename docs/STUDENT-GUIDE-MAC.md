@@ -43,9 +43,10 @@ Logins are on the instructor's slide.
 - **Start**: open UTM → select *Kingo Classroom* → **▶**
 - **Stop**: click into the VM window, press **⌃ Ctrl + ⌥ Option + fn + F2**
   ("Alt" is the Option key, and you need **fn** so F2 acts as a real
-  function key instead of brightness), log in as `student` / `kingo2026`,
-  then type `sudo poweroff` and press Enter. The VM turns itself off
-  cleanly in about 20 seconds.
+  function key instead of brightness), log in as `student` / `kingo2026`
+  (the password stays **invisible** while you type — that's normal, just
+  type it and press Enter), then type `sudo poweroff` and press Enter.
+  The VM turns itself off cleanly in about 20 seconds.
 - UTM's **⏻ button** is a *hard* power-off — UTM warns that it "may corrupt
   the VM". Only click OK there if the VM is frozen: it is like pulling the
   power plug and you may lose your work inside the VM.
