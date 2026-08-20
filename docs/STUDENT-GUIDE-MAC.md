@@ -41,6 +41,16 @@ Logins are on the instructor's slide.
 - **Start**: open UTM → select *Kingo Classroom* → **▶**
 - **Stop**: VM window → choose shut down (or UTM's ■ button)
 
+## If your Mac has only 8 GB of RAM
+
+The VM works, but your Mac will feel slow while it runs. Two tips:
+
+1. Close everything you don't need (extra apps and browser tabs).
+2. Optional: give the VM a little less memory. With the VM **stopped**,
+   right-click *Kingo Classroom* in UTM → **Edit** → **System** → set
+   **Memory** to **5120 MB** → **Save**. (Don't go lower — the services
+   need it.)
+
 ## If something breaks
 
 1. In UTM press ■ (stop), then ▶ (start) again.

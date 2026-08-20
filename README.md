@@ -87,7 +87,11 @@ and rebuild.
 ## Notes & alternatives
 
 - **VM sizing**: 4 vCPU / 6 GB RAM / 32 GB thin disk (+2 GB swap inside).
-  Hosts with 8 GB RAM work; 16 GB is comfortable.
+  Hosts with 8 GB RAM work but are the floor; 16 GB is comfortable. Students
+  on 8 GB machines can lower the VM to 5120 MB in VirtualBox/UTM (a setting,
+  no rebuild — both student guides show how); the 2 GB swap inside the VM
+  absorbs the difference. Don't go below that: the 8 services genuinely use
+  ~5 GB (Metabase and CloudBeaver are JVMs, Langflow is Python-heavy).
 - **Why headless (no desktop GUI)**: a deliberate choice, not a shortcut.
   Every service in the stack is a web UI that is port-forwarded to
   `localhost` on the student's own machine, so students work in their own

@@ -47,6 +47,16 @@ print them).
   (or double-click the `.bat` again — it just starts the VM).
 - **Stop**: close the VM window → choose **Send the shutdown signal**.
 
+## If your laptop has only 8 GB of RAM
+
+The VM works, but your laptop will feel slow while it runs. Two tips:
+
+1. Close everything you don't need (Teams, Zoom, extra browser tabs).
+2. Optional: give the VM a little less memory. With the VM **powered off**,
+   open VirtualBox → select *KingoVM* → **Settings → System → Motherboard**
+   → set **Base Memory** to **5120 MB** → **OK**. (Don't go lower — the
+   services need it.)
+
 ## If something breaks
 
 1. Close the VM window (choose *Power off the machine*) and start it again.
