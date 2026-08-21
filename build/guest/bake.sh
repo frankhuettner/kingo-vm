@@ -75,13 +75,16 @@ cd "$KINGO"
 # Registry pulls flake on shared-IP hosts (GitHub runners hit Docker Hub
 # rate limits): retry patiently and fail LOUDLY if the images never arrive —
 # continuing with a half-pulled stack just fails later with a worse message.
+# 10 attempts x 60 s: CI run 32439757489 died after 5 x 30 s inside a rolling
+# rate-limit window. Completed layers stay cached between attempts, so every
+# retry makes forward progress — patience wins here, more parallelism doesn't.
 pull_ok=0
-for i in 1 2 3 4 5; do
+for i in $(seq 1 10); do
   # --ignore-buildable: the jupyterhub image is built locally below and its
   # tag does not exist in any registry — a plain pull would always fail.
   docker compose pull --ignore-buildable && { pull_ok=1; break; }
-  echo "pull attempt $i failed (registry flake or rate limit); retrying in 30s"
-  sleep 30
+  echo "pull attempt $i failed (registry flake or rate limit); retrying in 60s"
+  sleep 60
 done
 [ "$pull_ok" = 1 ] || { echo "ERROR: docker compose pull kept failing"; exit 1; }
 build_ok=0

@@ -52,6 +52,16 @@ jobs:
       - name: Build image
         run: ./build/build.sh amd64
 
+      # Run 32439757489 failed inside the guest and the run log only carries a
+      # truncated serial console — keep the full log for post-mortems.
+      - name: Upload serial log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: serial-log
+          path: build/work/amd64/serial.log
+          if-no-files-found: ignore
+
       - name: Publish to release (split into <2 GiB parts)
         env:
           GH_TOKEN: ${{ github.token }}
