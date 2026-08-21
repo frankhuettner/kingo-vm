@@ -61,9 +61,7 @@ while true; do
     echo "     Qdrant        http://localhost:6333/dashboard"
     echo "     Web Terminal  http://localhost:7681  (AI coding: type opencode)"
     echo
-    echo "   Logins -> ask your instructor, or press Ctrl+Alt+F2"
-    echo "   (Mac: Ctrl+Option+fn+F2), log in as ${KINGO_USER:-student} / ${KINGO_PASSWORD:-kingo2026},"
-    echo "   and run:  kingo credentials"
+    echo "   Logins -> see the table in your setup guide, or ask the instructor."
     echo
     echo "   To turn the VM off: press  Ctrl + Alt + Delete"
     echo "   (Mac keyboards: Ctrl + Option + fn + Delete) - shuts down cleanly."

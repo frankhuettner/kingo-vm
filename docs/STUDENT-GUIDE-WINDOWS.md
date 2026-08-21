@@ -31,21 +31,22 @@ faster. If the window stays black, click into it and press any key.)
 
 **Minimize** that window (don't close it) and open in your normal browser:
 
-| Service | Address |
-|---|---|
-| Langflow | <http://localhost:7860> |
-| n8n | <http://localhost:5678> |
-| JupyterLab | <http://localhost:8888> |
-| JupyterHub | <http://localhost:8000> |
-| Metabase | <http://localhost:3000> |
-| CloudBeaver | <http://localhost:8978> |
-| Qdrant | <http://localhost:6333/dashboard> |
-| Web Terminal (OpenCode) | <http://localhost:7681> |
+| Service | Address | Login |
+|---|---|---|
+| Langflow | <http://localhost:7860> | none (logs in automatically) |
+| n8n | <http://localhost:5678> | create your own account on first visit |
+| JupyterLab | <http://localhost:8888> | none |
+| JupyterHub | <http://localhost:8000> | any username + password `kingo2026` |
+| Metabase | <http://localhost:3000> | `admin@kingo.local` / `Kingo2026!` |
+| CloudBeaver | <http://localhost:8978> | `student` / `Kingo2026!` |
+| Qdrant | <http://localhost:6333/dashboard> | none |
+| Web Terminal (OpenCode) | <http://localhost:7681> | none |
 
-Logins are on the instructor's slide (or the READY screen tells you how to
-print them). In the Web Terminal, type `opencode` to start the AI coding
-assistant (it asks for an API key the first time — the key is saved and can
-be changed anytime with `opencode auth login`).
+For AI tools that speak MCP: the Jupyter MCP endpoint is
+`http://localhost:4040/mcp` with header `Authorization: Bearer kingo-mcp-2026`.
+In the Web Terminal, type `opencode` to start the AI coding assistant (it
+asks for an API key the first time — the key is saved and can be changed
+anytime with `opencode auth login`).
 
 ## Daily use
 
