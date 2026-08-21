@@ -42,8 +42,11 @@ faster. If the window stays black, click into it and press any key.)
 | Qdrant | <http://localhost:6333/dashboard> | none |
 | Web Terminal (OpenCode) | <http://localhost:7681> | none |
 
-For AI tools that speak MCP: the Jupyter MCP endpoint is
-`http://localhost:4040/mcp` with header `Authorization: Bearer kingo-mcp-2026`.
+MCP (*Model Context Protocol*) is how AI assistants such as Claude Desktop,
+Claude Code, or Cursor connect to tools. Point yours at the Jupyter MCP
+endpoint `http://localhost:4040/mcp` (header
+`Authorization: Bearer kingo-mcp-2026`) and it can write and run code in
+the class notebook for you.
 In the Web Terminal, type `opencode` to start the AI coding assistant (it
 asks for an API key the first time — the key is saved and can be changed
 anytime with `opencode auth login`).
