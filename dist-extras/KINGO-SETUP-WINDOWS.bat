@@ -49,7 +49,7 @@ if errorlevel 1 (
 
 echo  Configuring network...
 "%VBM%" modifyvm "%VMNAME%" --nic1 nat
-for %%p in (8888 4040 7860 5678 3000 8978 6333 5432) do (
+for %%p in (8888 8000 4040 7860 5678 3000 8978 6333 5432 7681) do (
     "%VBM%" modifyvm "%VMNAME%" --natpf1 "svc%%p,tcp,127.0.0.1,%%p,,%%p"
 )
 "%VBM%" modifyvm "%VMNAME%" --natpf1 "ssh,tcp,127.0.0.1,2222,,22"
@@ -71,6 +71,7 @@ echo.
 echo      Langflow    http://localhost:7860
 echo      n8n         http://localhost:5678
 echo      JupyterLab  http://localhost:8888
+echo      JupyterHub  http://localhost:8000
 echo.
 echo   Minimize the VM window while you work - do not close it.
 echo  ================================================================

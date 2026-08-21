@@ -54,6 +54,20 @@ services:
     volumes:
       - jupyter-work:/home/jovyan/work
 
+  jupyterhub:
+    # Built locally (see jupyterhub/Dockerfile) — pull with --ignore-buildable.
+    build: ./jupyterhub
+    image: kingo-jupyterhub:local
+    container_name: kingo-jupyterhub
+    restart: unless-stopped
+    environment:
+      DUMMY_PASSWORD: ${KINGO_PASSWORD}
+      TZ: ${TZ}
+    ports:
+      - "8000:8000"
+    volumes:
+      - jupyterhub-data:/srv/jupyterhub
+
   jupyter-mcp:
     image: datalayer/jupyter-mcp-server:1.4.5
     container_name: kingo-jupyter-mcp
@@ -170,6 +184,7 @@ volumes:
   pgdata:
   qdrant-data:
   jupyter-work:
+  jupyterhub-data:
   langflow-data:
   n8n-data:
   cloudbeaver-data:

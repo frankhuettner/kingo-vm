@@ -36,12 +36,16 @@ faster. If the window stays black, click into it and press any key.)
 | Langflow | <http://localhost:7860> |
 | n8n | <http://localhost:5678> |
 | JupyterLab | <http://localhost:8888> |
+| JupyterHub | <http://localhost:8000> |
 | Metabase | <http://localhost:3000> |
 | CloudBeaver | <http://localhost:8978> |
 | Qdrant | <http://localhost:6333/dashboard> |
+| Web Terminal (OpenCode) | <http://localhost:7681> |
 
 Logins are on the instructor's slide (or the READY screen tells you how to
-print them).
+print them). In the Web Terminal, type `opencode` to start the AI coding
+assistant (it asks for an API key the first time — the key is saved and can
+be changed anytime with `opencode auth login`).
 
 ## Daily use
 
@@ -53,6 +57,15 @@ print them).
   can damage the databases inside the VM.)
 - Alternative: in the VM window's menu choose **Input → Keyboard →
   Insert Ctrl-Alt-Del** — the VM shuts down cleanly the same way.
+
+## KNIME (optional)
+
+KNIME runs on your laptop itself, not inside the VM: download **KNIME
+Analytics Platform** from <https://www.knime.com/downloads> and install it
+like any other program. To use the class database from KNIME, create a
+PostgreSQL connection with host `localhost`, port `5432`, database
+`classroom`, username `student`, password `kingo2026` — the VM must be
+running while you use it.
 
 ## If your laptop has only 8 GB of RAM
 

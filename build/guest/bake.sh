@@ -11,9 +11,10 @@ KINGO=/opt/kingo
 set -a; source "$KINGO/.env"; set +a
 
 # --- system plumbing ---------------------------------------------------------
-install -m 0644 "$KINGO/.build/kingo.service"        /etc/systemd/system/
-install -m 0644 "$KINGO/.build/kingo-banner.service" /etc/systemd/system/
-install -m 0755 "$KINGO/.build/kingo-banner.sh"      /usr/local/bin/kingo-banner.sh
+install -m 0644 "$KINGO/.build/kingo.service"          /etc/systemd/system/
+install -m 0644 "$KINGO/.build/kingo-banner.service"   /etc/systemd/system/
+install -m 0644 "$KINGO/.build/kingo-terminal.service" /etc/systemd/system/
+install -m 0755 "$KINGO/.build/kingo-banner.sh"        /usr/local/bin/kingo-banner.sh
 chmod +x "$KINGO/kingo"
 ln -sf "$KINGO/kingo" /usr/local/bin/kingo
 
@@ -29,6 +30,24 @@ fi
 usermod -aG docker student
 systemctl daemon-reload
 systemctl enable docker kingo kingo-banner
+
+# Browser terminal (ttyd on :7681) + OpenCode. No API key is baked in:
+# opencode stores keys per user under the student home (`opencode auth
+# login`), so students add or change theirs anytime.
+apt-get update -qq || true
+apt-get install -y ttyd
+oc_ok=0
+for i in 1 2 3; do
+  su - student -c 'curl -fsSL https://opencode.ai/install | bash' && { oc_ok=1; break; }
+  echo "opencode install attempt $i failed; retrying in 15s"
+  sleep 15
+done
+[ "$oc_ok" = 1 ] || { echo "ERROR: opencode install kept failing"; exit 1; }
+ocbin=$(find /home/student -maxdepth 4 -type f -name opencode 2>/dev/null | head -1)
+[ -n "$ocbin" ] || { echo "ERROR: opencode binary not found after install"; exit 1; }
+ln -sf "$ocbin" /usr/local/bin/opencode
+su - student -c 'opencode --version'
+systemctl enable --now kingo-terminal
 
 # One-key clean shutdown: Ctrl+Alt+Del on the console powers the VM off
 # cleanly instead of rebooting — students never have to log in just to stop
@@ -46,11 +65,20 @@ cd "$KINGO"
 # continuing with a half-pulled stack just fails later with a worse message.
 pull_ok=0
 for i in 1 2 3 4 5; do
-  docker compose pull && { pull_ok=1; break; }
+  # --ignore-buildable: the jupyterhub image is built locally below and its
+  # tag does not exist in any registry — a plain pull would always fail.
+  docker compose pull --ignore-buildable && { pull_ok=1; break; }
   echo "pull attempt $i failed (registry flake or rate limit); retrying in 30s"
   sleep 30
 done
 [ "$pull_ok" = 1 ] || { echo "ERROR: docker compose pull kept failing"; exit 1; }
+build_ok=0
+for i in 1 2 3; do
+  docker compose build && { build_ok=1; break; }
+  echo "compose build attempt $i failed; retrying in 20s"
+  sleep 20
+done
+[ "$build_ok" = 1 ] || { echo "ERROR: docker compose build kept failing"; exit 1; }
 for i in 1 2 3; do docker compose up -d && break || { echo "up retry $i"; sleep 15; }; done
 
 # Wait until every service answers WITH the expected status code. A lenient
@@ -66,7 +94,7 @@ check() { # port path expected-codes ("200" or alternation like "200|302")
   echo "$code" | grep -qE "^(${want})$"
 }
 # 4040/mcp answers 401 without the bearer token — that IS the healthy state.
-SERVICES="8888|/api|200 4040|/mcp|401 7860|/health|200 5678|/healthz|200 3000|/api/health|200 8978|/|200|301|302 6333|/readyz|200 5432|tcp"
+SERVICES="8888|/api|200 8000|/hub/api|200 4040|/mcp|401 7860|/health|200 5678|/healthz|200 3000|/api/health|200 8978|/|200|301|302 6333|/readyz|200 5432|tcp 7681|/|200"
 wait_all() { # $1=max attempts
   local attempt all s port path want
   for attempt in $(seq 1 "$1"); do
@@ -90,6 +118,12 @@ assert_stable() {
 }
 wait_all 90 || { echo "ERROR: services did not all come up"; docker compose ps; exit 1; }
 assert_stable
+
+# A healthy hub is not enough — it must be able to LAUNCH a Lab. The classic
+# failure is a hub image without the single-user server installed, which only
+# surfaces when a student first logs in.
+docker exec kingo-jupyterhub jupyterhub-singleuser --version
+docker exec kingo-jupyterhub python3 -c 'import jupyterlab'
 
 # Starter notebook that the MCP server points at
 docker exec kingo-jupyterlab bash -lc \

@@ -15,6 +15,7 @@ COMPOSE="docker compose"
 # name|port|path ("tcp" = raw TCP check)
 SERVICES=(
   "JupyterLab|8888|/api"
+  "JupyterHub|8000|/hub/api"
   "Jupyter MCP|4040|/"
   "Langflow|7860|/health"
   "n8n|5678|/healthz"
@@ -22,6 +23,7 @@ SERVICES=(
   "CloudBeaver|8978|/"
   "Qdrant|6333|/readyz"
   "PostgreSQL|5432|tcp"
+  "Web Terminal|7681|/"
 )
 
 check() { # port path -> 0 if up
@@ -50,6 +52,7 @@ cmd_credentials() {
 Service        URL                              Login
 -------        ---                              -----
 JupyterLab     http://localhost:8888            no login required
+JupyterHub     http://localhost:8000            any username / ${KINGO_PASSWORD}
 Jupyter MCP    http://localhost:4040/mcp        Bearer token: ${MCP_TOKEN}
 Langflow       http://localhost:7860            auto-login (classroom instance)
 n8n            http://localhost:5678            create an account on first visit
@@ -57,6 +60,7 @@ Metabase       http://localhost:3000            ${METABASE_ADMIN_EMAIL} / ${KING
 CloudBeaver    http://localhost:8978            ${KINGO_USER} / ${KINGO_STRONG_PASSWORD}
 Qdrant         http://localhost:6333/dashboard  no login required
 PostgreSQL     localhost:5432                   ${KINGO_USER} / ${KINGO_PASSWORD}  (db: classroom)
+Web Terminal   http://localhost:7681            no login (AI coding: type opencode)
 
 VM console/SSH login: ${KINGO_USER} / ${KINGO_PASSWORD}   (ssh -p 2222 ${KINGO_USER}@localhost)
 EOF
@@ -79,7 +83,7 @@ case "${1:-help}" in
   start|up)          $COMPOSE up -d ;;
   stop|down)         $COMPOSE down ;;
   update)            git pull --ff-only 2>/dev/null || true
-                     $COMPOSE pull && $COMPOSE up -d
+                     $COMPOSE pull --ignore-buildable && $COMPOSE up -d
                      echo "Stack updated." ;;
   reset)             echo "This DELETES all data (databases, notebooks, workflows) and starts fresh."
                      read -r -p "Type 'yes' to continue: " a

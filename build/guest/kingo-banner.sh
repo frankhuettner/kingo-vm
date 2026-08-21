@@ -8,6 +8,7 @@ set -a; source /opt/kingo/.env 2>/dev/null || true; set +a
 
 SERVICES=(
   "JupyterLab|8888|/api"
+  "JupyterHub|8000|/hub/api"
   "Jupyter MCP|4040|/"
   "Langflow|7860|/health"
   "n8n|5678|/healthz"
@@ -15,6 +16,7 @@ SERVICES=(
   "CloudBeaver|8978|/"
   "Qdrant|6333|/readyz"
   "PostgreSQL|5432|tcp"
+  "Web Terminal|7681|/"
 )
 
 check() {
@@ -53,9 +55,11 @@ while true; do
     echo "     Langflow      http://localhost:7860"
     echo "     n8n           http://localhost:5678"
     echo "     JupyterLab    http://localhost:8888"
+    echo "     JupyterHub    http://localhost:8000"
     echo "     Metabase      http://localhost:3000"
     echo "     CloudBeaver   http://localhost:8978"
     echo "     Qdrant        http://localhost:6333/dashboard"
+    echo "     Web Terminal  http://localhost:7681  (AI coding: type opencode)"
     echo
     echo "   Logins -> ask your instructor, or press Ctrl+Alt+F2"
     echo "   (Mac: Ctrl+Option+fn+F2), log in as ${KINGO_USER:-student} / ${KINGO_PASSWORD:-kingo2026},"

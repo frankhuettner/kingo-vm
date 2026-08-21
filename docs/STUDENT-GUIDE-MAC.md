@@ -32,11 +32,15 @@ starts are much faster.)
 | Langflow | <http://localhost:7860> |
 | n8n | <http://localhost:5678> |
 | JupyterLab | <http://localhost:8888> |
+| JupyterHub | <http://localhost:8000> |
 | Metabase | <http://localhost:3000> |
 | CloudBeaver | <http://localhost:8978> |
 | Qdrant | <http://localhost:6333/dashboard> |
+| Web Terminal (OpenCode) | <http://localhost:7681> |
 
-Logins are on the instructor's slide.
+Logins are on the instructor's slide. In the Web Terminal, type `opencode`
+to start the AI coding assistant (it asks for an API key the first time —
+the key is saved and can be changed anytime with `opencode auth login`).
 
 ## Daily use
 
@@ -52,6 +56,15 @@ Logins are on the instructor's slide.
 - UTM's **⏻ button** is a *hard* power-off — UTM warns that it "may corrupt
   the VM". Only click OK there if the VM is frozen: it is like pulling the
   power plug and you may lose your work inside the VM.
+
+## KNIME (optional)
+
+KNIME runs on your Mac itself, not inside the VM: download **KNIME
+Analytics Platform** from <https://www.knime.com/downloads> and install it
+like any other app. To use the class database from KNIME, create a
+PostgreSQL connection with host `localhost`, port `5432`, database
+`classroom`, username `student`, password `kingo2026` — the VM must be
+running while you use it.
 
 ## If your Mac has only 8 GB of RAM
 
