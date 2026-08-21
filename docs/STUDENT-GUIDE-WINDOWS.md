@@ -48,6 +48,40 @@ In the Web Terminal, type `opencode` to start the AI coding assistant (it
 asks for an API key the first time — the key is saved and can be changed
 anytime with `opencode auth login`).
 
+## How it all fits together
+
+```
+┌─ Your laptop (Windows) ────────────────────────────────────┐
+│                                                            │
+│   Browser, KNIME, MCP clients                              │
+│       │                                                    │
+│       │  always talk to  localhost:<port>                  │
+│       ▼  (VirtualBox forwards each port into the VM)       │
+│  ┌─ Kingo VM — Ubuntu Linux ────────────────────────────┐  │
+│  │                                                      │  │
+│  │   Docker runs one container per service:             │  │
+│  │                                                      │  │
+│  │   [Langflow] [n8n] [JupyterLab] [Metabase] ...       │  │
+│  │       │        │                                     │  │
+│  │       └────────┴──► [PostgreSQL]   [Qdrant]          │  │
+│  │                                                      │  │
+│  │   containers reach each other by service NAME:       │  │
+│  │   postgres:5432, qdrant:6333                         │  │
+│  └──────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────┘
+```
+
+Two address rules cover everything:
+
+1. **From your laptop** (browser, KNIME, MCP clients): always
+   `localhost:<port>` — VirtualBox forwards these ports into the VM.
+2. **From one service to another** — for example an n8n workflow or a
+   Langflow flow that connects to the database: use the *service name* as
+   host, **not** localhost. For PostgreSQL that is host `postgres`, port
+   `5432`, database `classroom`, user `student`, password `kingo2026`; for
+   Qdrant it is `http://qdrant:6333`. (Inside a container, `localhost`
+   means the container itself — the most common mistake.)
+
 ## Daily use
 
 - **Start**: open VirtualBox → select *KingoVM* → **Start**
