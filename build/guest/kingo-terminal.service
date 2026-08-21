@@ -5,7 +5,9 @@ After=network.target
 [Service]
 User=student
 WorkingDirectory=/home/student
-ExecStart=/usr/bin/ttyd --writable --port 7681 bash -l
+# --interface 0.0.0.0 is required: ttyd 1.7.4 binds loopback by default,
+# but UTM/VirtualBox port forwards connect to the guest's NAT IP.
+ExecStart=/usr/bin/ttyd --writable --port 7681 --interface 0.0.0.0 bash -l
 Restart=always
 RestartSec=3
 

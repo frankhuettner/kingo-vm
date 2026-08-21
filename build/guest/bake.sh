@@ -36,6 +36,13 @@ systemctl enable docker kingo kingo-banner
 # login`), so students add or change theirs anytime.
 apt-get update -qq || true
 apt-get install -y ttyd
+# Ubuntu's package auto-enables its own loopback-only ttyd.service: it
+# occupies the port (crash-looping kingo-terminal) yet still answers the
+# localhost health checks, so the breakage is invisible from inside. The
+# port forwards connect to the guest's NAT IP and need kingo-terminal's
+# all-interfaces listener instead.
+systemctl disable --now ttyd.service
+systemctl mask ttyd.service
 oc_ok=0
 for i in 1 2 3; do
   su - student -c 'curl -fsSL https://opencode.ai/install | bash' && { oc_ok=1; break; }
@@ -48,6 +55,11 @@ ocbin=$(find /home/student -maxdepth 4 -type f -name opencode 2>/dev/null | head
 ln -sf "$ocbin" /usr/local/bin/opencode
 su - student -c 'opencode --version'
 systemctl enable --now kingo-terminal
+sleep 3
+systemctl is-active kingo-terminal
+# Assert the BIND ADDRESS, not just that the port answers: a loopback-only
+# listener passes every localhost check but is dead through the forwards.
+ss -tln | grep -qE '0\.0\.0\.0:7681' || { echo "ERROR: ttyd is not listening on all interfaces"; exit 1; }
 
 # One-key clean shutdown: Ctrl+Alt+Del on the console powers the VM off
 # cleanly instead of rebooting — students never have to log in just to stop
